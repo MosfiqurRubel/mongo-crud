@@ -1,0 +1,22 @@
+{
+  "name": "mongo-crud",
+  "version": "1.0.0",
+  "description": "Pure Node.js + MongoDB CRUD API (without Express)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "nodejs",
+    "mongodb",
+    "crud",
+    "backend"
+  ],
+  "author": "Mosfiqur Rubel",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "mongodb": "^7.1.0"
+  }
+}
