@@ -4,6 +4,7 @@ const fs = require("fs");
 const {
   createUserController,
   getUsersController,
+  deleteUserController,
 } = require("../controllers/user.controller");
 
 const userRoutes = (req, res) => {
@@ -26,6 +27,10 @@ const userRoutes = (req, res) => {
 
       createUserController(req, res); // Call the controller function to handle user creation with the parsed data
     });
+  } else if (method === "DELETE" && url.startsWith("/users/")) {
+    const id = url.split("/")[2]; // Extract the user ID from the URL (e.g., /users/123)
+    req.params = { id }; // Attach the extracted ID to the request parameters
+    return deleteUserController(req, res);
   } else {
     res.writeHead(404);
     res.end("Not Found");

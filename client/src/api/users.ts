@@ -21,4 +21,10 @@ const createUser = async (user: { name: string; age: number }) => {
   return response.json();
 };
 
-export { getUsers, createUser };
+const deleteUser = async (id: string) => {
+  await fetch(`/users/${id}`, {
+    method: "DELETE",
+  });
+};
+
+export { getUsers, createUser, deleteUser };

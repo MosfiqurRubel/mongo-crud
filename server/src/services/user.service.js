@@ -1,3 +1,4 @@
+const { ObjectId } = require("mongodb");
 const connectDB = require("../config/db");
 
 const createUser = async (userData) => {
@@ -10,7 +11,13 @@ const getAllUsers = async () => {
   return db.collection("users").find().toArray(); // Fetch all users from the "users" collection and convert to an array
 };
 
-module.exports = { createUser, getAllUsers };
+const deleteUser = async (id) => {
+  const db = await connectDB();
+  console.log("Deleting ID", id);
+  return db.collection("users").deleteOne({ _id: new ObjectId(id) });
+};
+
+module.exports = { createUser, getAllUsers, deleteUser };
 
 // const getAllUsers = async () => {
 //   const db = await connectDB();

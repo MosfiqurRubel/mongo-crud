@@ -1,6 +1,6 @@
 import "./style.css";
 import { createIcons, Pencil, Trash } from "lucide";
-import { getUsers, createUser } from "./api/users";
+import { getUsers, createUser, deleteUser } from "./api/users";
 
 type User = {
   _id: string;
@@ -27,7 +27,7 @@ const renderUsers = async () => {
           <td class="table-cell">${user.age}</td>
           <td class="table-cell">
             <button class="text-blue-600 hover:text-blue-700 cursor-pointer"><i data-lucide='Pencil'></i></button>
-            <button class="text-red-600 hover:text-red-700 cursor-pointer ml-4"><i data-lucide='Trash'></i></button>
+            <button data-delete="${user._id}" class="text-red-600 hover:text-red-700 cursor-pointer ml-4"><i data-lucide='Trash'></i></button>
           </td>
         </tr>`;
     });
@@ -52,6 +52,19 @@ const renderUsers = async () => {
     console.error("Error loading users:", error);
   }
 };
+
+document.addEventListener("click", async (e) => {
+  const target = e.target as HTMLElement;
+  const deleteButton = target.closest("[data-delete]") as HTMLElement;
+
+  if (deleteButton) {
+    const id = deleteButton.dataset.delete;
+
+    console.log("Delete clicked: ", id);
+    await deleteUser(id!);
+    renderUsers();
+  }
+});
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div class="container flex-center h-full">
