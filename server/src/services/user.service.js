@@ -17,7 +17,14 @@ const deleteUser = async (id) => {
   return db.collection("users").deleteOne({ _id: new ObjectId(id) });
 };
 
-module.exports = { createUser, getAllUsers, deleteUser };
+const updateUser = async (id, userData) => {
+  const db = await connectDB();
+  return db
+    .collection("users")
+    .updateOne({ _id: new ObjectId(id) }, { $set: userData }); // Update the user with the specified ID using the provided data
+};
+
+module.exports = { createUser, getAllUsers, deleteUser, updateUser }; // Export the service functions to be used in the controllers
 
 // const getAllUsers = async () => {
 //   const db = await connectDB();

@@ -1,70 +1,12 @@
 import "./style.css";
 import { createIcons, Pencil, Trash } from "lucide";
-import { getUsers, createUser, deleteUser } from "./api/users";
+import { getUsers, createUser, deleteUser, updateUser } from "./api/users";
 
 type User = {
   _id: string;
   name: string;
   age: number;
 };
-
-const renderUsers = async () => {
-  try {
-    const users: User[] = await getUsers();
-    console.log("users", users);
-
-    const form = document.querySelector("form");
-
-    const tbody = document.querySelector("tbody");
-    if (!tbody) return;
-
-    tbody.innerHTML = ""; // Clear existing rows
-
-    users.forEach((user: User) => {
-      tbody.innerHTML += `
-        <tr class="table-row">
-          <td class="table-cell">${user.name}</td>
-          <td class="table-cell">${user.age}</td>
-          <td class="table-cell">
-            <button class="text-blue-600 hover:text-blue-700 cursor-pointer"><i data-lucide='Pencil'></i></button>
-            <button data-delete="${user._id}" class="text-red-600 hover:text-red-700 cursor-pointer ml-4"><i data-lucide='Trash'></i></button>
-          </td>
-        </tr>`;
-    });
-
-    form?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const name = (document.querySelector("#name") as HTMLInputElement).value;
-      const age = Number(
-        (document.querySelector("#age") as HTMLInputElement).value,
-      );
-
-      console.log(name);
-
-      await createUser({ name, age });
-      form.reset();
-      renderUsers();
-    });
-
-    createIcons({ icons: { Pencil, Trash } });
-  } catch (error) {
-    console.error("Error loading users:", error);
-  }
-};
-
-document.addEventListener("click", async (e) => {
-  const target = e.target as HTMLElement;
-  const deleteButton = target.closest("[data-delete]") as HTMLElement;
-
-  if (deleteButton) {
-    const id = deleteButton.dataset.delete;
-
-    console.log("Delete clicked: ", id);
-    await deleteUser(id!);
-    renderUsers();
-  }
-});
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div class="container flex-center h-full">
@@ -88,6 +30,14 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
             Create User
           </button>
         </form>
+
+        <button type="button" id="cancelEdit" class="hidden w-full bg-gray-400 text-white py-2 rounded">
+          Cancel Edit
+        </button>
+
+        <p id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded shadow">
+          Success
+        </p>
         
         <hr class="my-8 border-gray-300" />
         
@@ -119,5 +69,103 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   </div>
 `;
 
-createIcons({ icons: { Pencil, Trash } });
+const form = document.querySelector("form") as HTMLFormElement;
+const cancelBtn = document.getElementById("cancelEdit") as HTMLButtonElement;
+
+let allUsers: User[] = [];
+let editingUserId: string | null = null;
+
+const renderUsers = async () => {
+  const users: User[] = await getUsers();
+  allUsers = users;
+
+  const tbody = document.querySelector("tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  users.forEach((user) => {
+    tbody.innerHTML += `
+        <tr class="table-row">
+          <td class="table-cell">${user.name}</td>
+          <td class="table-cell">${user.age}</td>
+          <td class="table-cell">
+            <button data-edit="${user._id}" class="text-blue-600 hover:text-blue-700 cursor-pointer"><i data-lucide='Pencil'></i></button>
+            <button data-delete="${user._id}" class="text-red-600 hover:text-red-700 cursor-pointer ml-4"><i data-lucide='Trash'></i></button>
+          </td>
+        </tr>
+      `;
+  });
+
+  createIcons({ icons: { Pencil, Trash } });
+};
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = (document.querySelector("#name") as HTMLInputElement).value;
+  const age = Number(
+    (document.querySelector("#age") as HTMLInputElement).value,
+  );
+
+  if (editingUserId) {
+    await updateUser(editingUserId, { name, age });
+    showToast("Updated ✅");
+
+    editingUserId = null;
+    cancelBtn.classList.add("hidden");
+    form.querySelector("button")!.textContent = "Create User";
+  } else {
+    await createUser({ name, age });
+    showToast("Created ✅");
+  }
+
+  form.reset();
+  renderUsers();
+});
+
+cancelBtn.addEventListener("click", () => {
+  editingUserId = null;
+  form.reset();
+  cancelBtn.classList.add("hidden");
+  form.querySelector("button")!.textContent = "Create User";
+});
+
+document.addEventListener("click", async (e) => {
+  const target = e.target as HTMLElement;
+
+  const deleteBtn = target.closest("[data-delete]") as HTMLElement;
+  const editBtn = target.closest("[data-edit]") as HTMLElement;
+
+  if (deleteBtn) {
+    const id = deleteBtn.dataset.delete!;
+    await deleteUser(id);
+    showToast("Deleted 🗑");
+    renderUsers();
+  }
+
+  if (editBtn) {
+    const id = editBtn.dataset.edit!;
+    const user = allUsers.find((u) => u._id === id);
+
+    if (!user) return;
+
+    (document.querySelector("#name") as HTMLInputElement).value = user.name;
+    (document.querySelector("#age") as HTMLInputElement).value =
+      user.age.toString();
+
+    editingUserId = id;
+    cancelBtn.classList.remove("hidden");
+    form.querySelector("button")!.textContent = "Update User";
+  }
+});
+
+const showToast = (msg: string) => {
+  const toast = document.getElementById("toast")!;
+  toast.textContent = msg;
+  toast.classList.remove("hidden");
+
+  setTimeout(() => toast.classList.add("hidden"), 2000);
+};
+
 renderUsers();

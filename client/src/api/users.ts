@@ -27,4 +27,19 @@ const deleteUser = async (id: string) => {
   });
 };
 
-export { getUsers, createUser, deleteUser };
+const updateUser = async (id: string, user: { name: string; age: number }) => {
+  const response = await fetch(`/users/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(user),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update user");
+  }
+  return response.json();
+};
+
+export { getUsers, createUser, deleteUser, updateUser };

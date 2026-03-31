@@ -43,8 +43,26 @@ const deleteUserController = async (req, res) => {
   }
 };
 
+const updateUserController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await userService.updateUser(id, req.body);
+
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({ success: true, message: "User updated successfully" }),
+    );
+  } catch (err) {
+    console.log(err);
+    res.writeHead(500);
+    res.end("Error updating user");
+  }
+};
+
 module.exports = {
   createUserController,
   getUsersController,
   deleteUserController,
+  updateUserController,
 }; // Export the controller functions to be used in the routing setup

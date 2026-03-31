@@ -5,6 +5,7 @@ const {
   createUserController,
   getUsersController,
   deleteUserController,
+  updateUserController,
 } = require("../controllers/user.controller");
 
 const userRoutes = (req, res) => {
@@ -31,6 +32,17 @@ const userRoutes = (req, res) => {
     const id = url.split("/")[2]; // Extract the user ID from the URL (e.g., /users/123)
     req.params = { id }; // Attach the extracted ID to the request parameters
     return deleteUserController(req, res);
+  } else if (method === "PUT" && url.startsWith("/users/")) {
+    const id = url.split("/")[2];
+    let body = "";
+
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => {
+      req.body = JSON.parse(body);
+      req.params = { id };
+
+      return updateUserController(req, res);
+    });
   } else {
     res.writeHead(404);
     res.end("Not Found");
